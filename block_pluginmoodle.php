@@ -24,12 +24,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-class block_pluginmoodle extends block_base {
+class block_pluginmoodle extends block_base
+{
 
     /**
      * Initialise the block.
      */
-    public function init() {
+    public function init()
+    {
         $this->title = get_string('pluginname', 'block_pluginmoodle');
     }
 
@@ -38,7 +40,8 @@ class block_pluginmoodle extends block_base {
      *
      * @return stdClass The block content.
      */
-    public function get_content() {
+    public function get_content()
+    {
         if ($this->content !== null) {
             return $this->content;
         }
@@ -46,17 +49,44 @@ class block_pluginmoodle extends block_base {
         $this->content = new stdClass();
         $this->content->footer = '';
 
-        // Load the JavaScript for the popup.
-        $this->page->requires->js_call_amd('block_pluginmoodle/popup', 'init');
+        $welcomemsg = get_string('welcomemsg', 'block_pluginmoodle');
+
+        // Inline JavaScript for the popup (no AMD compilation needed).
+        $js = "
+        (function() {
+            function initPopupBtn() {
+                var btn = document.getElementById('block-pluginmoodle-btn');
+                if (!btn) return;
+                btn.addEventListener('click', function() {
+                    var overlay = document.createElement('div');
+                    overlay.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;z-index:9999;cursor:pointer';
+                    var box = document.createElement('div');
+                    box.style.cssText = 'background:#fff;padding:40px 50px;border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,0.3);text-align:center;font-size:1.3rem;font-weight:bold;color:#333;cursor:default;max-width:400px';
+                    box.textContent = " . json_encode($welcomemsg) . ";
+                    overlay.appendChild(box);
+                    document.body.appendChild(overlay);
+                    overlay.addEventListener('click', function(e) {
+                        if (e.target === overlay) document.body.removeChild(overlay);
+                    });
+                });
+            }
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPopupBtn);
+            } else {
+                initPopupBtn();
+            }
+        })();
+        ";
+        $this->page->requires->js_init_code($js);
 
         // Render the button.
         $this->content->text = html_writer::tag(
             'button',
             get_string('clickme', 'block_pluginmoodle'),
-            [
-                'id'    => 'block-pluginmoodle-btn',
-                'class' => 'btn btn-primary',
-            ]
+        [
+            'id' => 'block-pluginmoodle-btn',
+            'class' => 'btn btn-primary',
+        ]
         );
 
         return $this->content;
@@ -67,7 +97,8 @@ class block_pluginmoodle extends block_base {
      *
      * @return array
      */
-    public function applicable_formats() {
+    public function applicable_formats()
+    {
         return ['all' => true];
     }
 }
