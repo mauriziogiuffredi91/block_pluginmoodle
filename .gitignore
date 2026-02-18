@@ -1,0 +1,20 @@
+# Moodle generated files
+/amd/build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Node modules (if using grunt for JS build)
+node_modules/
+npm-debug.log
+
+# PHP composer
+vendor/
+composer.lock
